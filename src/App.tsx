@@ -1,11 +1,12 @@
 import axios from "axios";
+import { Pokemon } from "pokenode-ts";
 import { useState } from "react";
 import "./App.css";
 
 function App() {
   // Declare a new state variable, which we'll call "pokemonName"
   const [pokemonName, setPokemonName] = useState("");
-  const [pokemonInfo, setPokemonInfo] = useState<undefined | any>(undefined);
+  const [pokemonInfo, setPokemonInfo] = useState<undefined | Pokemon>(undefined);
 
   const POKEMON_BASE_API_URL = "https://pokeapi.co/api/v2";
   return (
@@ -27,7 +28,7 @@ function App() {
 
       <p>You have entered {pokemonName}</p>
 
-      {pokemonInfo === undefined ? (
+      {pokemonInfo === undefined || pokemonInfo.sprites.other.dream_world.front_default === null? (
         <p>Pokemon not found</p>
       ) : (
         <div id="pokemon-result">
