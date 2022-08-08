@@ -5,8 +5,9 @@ import "./App.css";
 function App() {
   // Declare a new state variable, which we'll call "pokemonName"
   const [pokemonName, setPokemonName] = useState("");
+  const [pokemonInfo, setPokemonInfo] = useState<undefined | any>(undefined);
 
-  const POKEMON_BASE_URL = "https://pokeapi.co/api/v2";
+  const POKEMON_BASE_API_URL = "https://pokeapi.co/api/v2";
   return (
     <div>
       <h1>Pokemon Search</h1>
@@ -26,13 +27,19 @@ function App() {
 
       <p>You have entered {pokemonName}</p>
 
-      <div id="pokemon-result">This will show the result</div>
+      {pokemonInfo === undefined ? (
+        <p>Pokemon not found</p>
+      ) : (
+        <div id="pokemon-result">
+          <img src={pokemonInfo.sprites.other.dream_world.front_default} />
+        </div>
+      )}
     </div>
   );
 
   function search() {
-    axios.get(POKEMON_BASE_URL + "/pokemon/" + pokemonName).then((res) => {
-      console.log(res.data);
+    axios.get(POKEMON_BASE_API_URL + "/pokemon/" + pokemonName).then((res) => {
+      setPokemonInfo(res.data);
     });
   }
 }
