@@ -1,6 +1,5 @@
 
 import axios from "axios";
-import { Pokemon } from "pokenode-ts";
 import { useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import TextField from "@mui/material/TextField";
@@ -8,26 +7,24 @@ import "./App.css";
 import { Box, Button, Grid, Paper, Skeleton } from "@mui/material";
 
 function App() {
-  const [pokemonName, setPokemonName] = useState("");
-  const [pokemonInfo, setPokemonInfo] = useState<null | undefined | Pokemon>(
-    undefined
-  );
-  const POKEMON_BASE_API_URL = "https://pokeapi.co/api/v2";
+  const [countryCode, setCountryCode] = useState("");
+  const [exchangeRateInfo, setExchangeRateInfo] = useState<undefined | any>(undefined);
+  const EXCHANGE_RATE_BASE_API_URL = "https://open.er-api.com/v6";
   return (
     <div>
       <div className="search-field">
-        <h1>Pokédex Search</h1>
+        <h1>Exchange Rate Search</h1>
         <div style={{ display: "flex", justifyContent: "center" }}>
           <TextField
             id="search-bar"
             className="text"
-            value={pokemonName}
+            value={countryCode}
             onChange={(prop) => {
-              setPokemonName(prop.target.value);
+              setCountryCode(prop.target.value);
             }}
-            label="Enter a Pokémon Name..."
+            label="Enter a Country Code..."
             variant="outlined"
-            placeholder="Search..."
+            placeholder="Search... e.g. GBP, NZD, INR, AUD"
             size="medium"
           />
           <Button
@@ -41,18 +38,18 @@ function App() {
         </div>
       </div>
 
-      {pokemonInfo === undefined ? (
+      {exchangeRateInfo === undefined ? (
         <div></div>
       ) : (
         <div
-          id="pokemon-result"
+          id="exchangeRate-result"
           style={{
             maxWidth: "800px",
             margin: "0 auto",
             padding: "100px 10px 0px 10px",
           }}
         >
-          <Paper sx={{ backgroundColor: getBackColor(pokemonInfo) }}>
+          <Paper sx={{ backgroundColor: getBackColor(exchangeRateInfo) }}>
             <Grid
               container
               direction="row"
@@ -63,42 +60,38 @@ function App() {
             >
               <Grid item>
                 <Box>
-                  {pokemonInfo === undefined || pokemonInfo === null ? (
-                    <h1> Pokemon not found</h1>
+                  {exchangeRateInfo === undefined || exchangeRateInfo === null || exchangeRateInfo.result == "error" ? (
+                    <h1> Entered Country Code is invalid! </h1>
                   ) : (
                     <div>
                       <h1>
-                        {pokemonInfo.name.charAt(0).toUpperCase() +
-                          pokemonInfo.name.slice(1)}
+                        {exchangeRateInfo.base_code}
                       </h1>
                       <p>
-                        ID: {pokemonInfo.id}
+                        <b>Provider:</b> {exchangeRateInfo.provider}
                         <br />
-                        Height: {pokemonInfo.height * 10} cm
                         <br />
-                        Weight: {pokemonInfo.weight / 10} kg
+                        <b>Last Updated:</b> {exchangeRateInfo.time_last_update_utc}
                         <br />
-                        Types: {getTypes()?.toString()}
                         <br />
-                        Abilities: {getAbilities()?.toString()}
+                      <h2>
+                        Rates
+                      </h2>
+                        <b>USD:</b> ${exchangeRateInfo.rates.USD}
+                        <br/>
+                        <b>INR:</b> ${exchangeRateInfo.rates.INR}
+                        <br/>
+                        <b>NZD:</b> ${exchangeRateInfo.rates.NZD}
+                        <br/>
+                        <b>AUD:</b> ${exchangeRateInfo.rates.AUD}
+                        <br/>
+                        <b>GBP:</b> ${exchangeRateInfo.rates.GBP}
                       </p>
                     </div>
                   )}
                 </Box>
               </Grid>
               <Grid item>
-                <Box>
-                  {pokemonInfo?.sprites.other.dream_world.front_default ? (
-                    <img
-                      height="300px"
-                      width="300px"
-                      alt={pokemonInfo.name}
-                      src={pokemonInfo.sprites.other.dream_world.front_default}
-                    ></img>
-                  ) : (
-                    <Skeleton width={300} height={300} />
-                  )}
-                </Box>
               </Grid>
             </Grid>
           </Paper>
@@ -108,64 +101,25 @@ function App() {
   );
 
   // Credit to codingsparkles for providing the color mapping
-  function getBackColor(poke: Pokemon | undefined | null) {
-    let backColor = "#EEE8AA";
-    if (poke === undefined || poke === null) {
-      return backColor;
-    }
-    const pokeTypes = poke.types.map((i) => i.type.name);
-    if (pokeTypes.includes("fire")) {
-      backColor = "#FEC5BB";
-    } else if (pokeTypes.includes("grass")) {
-      backColor = "#80FFDB";
-    } else if (pokeTypes.includes("water")) {
-      backColor = "#DFE7FD";
-    } else if (pokeTypes.includes("bug")) {
-      backColor = "#B0DEA3";
-    } else if (pokeTypes.includes("normal")) {
-      backColor = "#E0FFFF";
-    } else if (pokeTypes.includes("electric")) {
-      backColor = "#D8E2DC";
-    } else if (pokeTypes.includes("ground")) {
-      backColor = "#FAD2E1";
-    } else if (pokeTypes.includes("fairy")) {
-      backColor = "#FFF1E6";
-    } else if (pokeTypes.includes("ghost")) {
-      backColor = "#F8EDEB";
-    } else if (pokeTypes.includes("fighting")) {
-      backColor = "#F1FAEE";
-    } else if (pokeTypes.includes("rock")) {
-      backColor = "#A8DADC";
-    }
-    return backColor;
+  function getBackColor(poke: any | undefined | null) {
+    
+    return "#A8DADC";
   }
 
   function search() {
-    console.log(pokemonName);
-    if (pokemonName === undefined || pokemonName === "") {
+    console.log(countryCode);
+    if (countryCode === undefined || countryCode === "") {
       return;
     }
 
     axios
-      .get(POKEMON_BASE_API_URL + "/pokemon/" + pokemonName?.toLowerCase())
+      .get(EXCHANGE_RATE_BASE_API_URL + "/latest/" + countryCode?.toLowerCase())
       .then((res) => {
-        setPokemonInfo(res.data);
+        setExchangeRateInfo(res.data);
       })
       .catch(() => {
-        setPokemonInfo(null);
+        setExchangeRateInfo(null);
       });
-  }
-
-  function getTypes() {
-    if (pokemonInfo !== undefined && pokemonInfo !== null) {
-      return pokemonInfo.types.map((item) => item.type.name);
-    }
-  }
-
-  function getAbilities() {
-    if (pokemonInfo !== undefined && pokemonInfo !== null) {
-      return pokemonInfo.abilities.map((ability) => ability.ability.name);
-    }
   }
 }
 
